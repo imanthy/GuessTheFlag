@@ -16,54 +16,119 @@ struct ContentView: View {
     @State private var score_title = ""
     @State private var countries: [Countries] = Countries.allCases.shuffled()
     @State private var correct_answer = Int.random(in: 0...2)
+    @State private var user_answer = 0
+    @State private var score = 0
+    @State private var round = 0
+    @State private var is_final_round = false
+    let max_round = 10
     
     var body: some View {
         ZStack {
-            LinearGradient(gradient: Gradient(colors: [.gray, .black]), startPoint: .top, endPoint: .bottom)
+//            LinearGradient(gradient: Gradient(colors: [.gray, .black]), startPoint: .top, endPoint: .bottom)
+            RadialGradient(stops: [
+                .init(color: Color(red: 0.1, green: 0.2, blue: 0.45), location: 0.3),
+                .init(color: Color(red: 0.76, green: 0.15, blue: 0.26), location: 0.2)], center: .top, startRadius: 200, endRadius: 700)
                 .ignoresSafeArea()
-            VStack (spacing: 30) {
-                VStack {
-                    Text("Tap the flag of")
-                        .foregroundColor(.white)
-                        .font(.subheadline)
-                        .bold()
-                    Text(countries[correct_answer].rawValue)
+            VStack {
+                Spacer()
+                Text("Guess the Flag")
+                    .foregroundColor(.white)
+                    .font(.largeTitle)
+                    .fontWeight(.black)
+                    .kerning(-1.5)
+                VStack (spacing: 15) {
+                    VStack {
+                        Text("Tap the flag of")
+                            .foregroundStyle(.secondary)
+                            .font(.subheadline)
+                            .bold()
+                        Text(countries[correct_answer].rawValue)
+                            .font(.title)
+                            .fontWeight(.black)
+                    }
+                    ForEach(0..<3) { number in
+                        Button {
+                            flagTapped(number)
+                        } label: {
+                            Image(countries[number].rawValue)
+                                .renderingMode(.original)
+                                .clipShape(RoundedRectangle(cornerRadius: 20.0))
+                                .shadow(radius: 50)
+                        }
+                    }
+                } // flag VStack
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 20)
+                .background(.thinMaterial)
+                .clipShape(RoundedRectangle(cornerRadius: 20.0))
+                
+                Spacer()
+                Spacer()
+                
+                ZStack {
+                    Text("\(score)")
                         .foregroundColor(.white)
                         .font(.title)
                         .fontWeight(.black)
-                }
-                ForEach(0..<3) { number in
-                    Button {
-                        flagTapped(number)
-                        
-                    } label: {
-                        Image(countries[number].rawValue)
-                            .renderingMode(.original)
-                            .clipShape(RoundedRectangle(cornerRadius: 20.0))
-                            .shadow(radius: 55)
+                    HStack {
+                        Text("Max: \(max_round)")
+                            .font(.footnote)
+                            .foregroundColor(.white)
+                            .bold()
+                        Spacer()
+                        Text("Round: \(round)")
+                            .font(.footnote)
+                            .foregroundColor(.white)
+                            .bold()
                     }
                 }
+                
+                Spacer()
             } // VStack
+            .padding()
         } // ZStack
         .alert(score_title, isPresented: $showing_score) {
-            Button("Continue", action: askQuestion)
+            Button("Continue", action: continueGame)
         } message: {
-            Text("Your answer was \(score_title.lowercased())")
+            if user_answer == correct_answer {
+                Text("Your score is \(score)")
+            } else {
+                Text("That's the flag of \(countries[user_answer].rawValue)")
+            }
+        }
+        .alert("Congratulations!", isPresented: $is_final_round) {
+            Button("Restart", action: resetGame)
+        } message: {
+            Text("Your total score is \(score)")
         }
     }
     
     func flagTapped(_ number: Int) {
         if number == correct_answer {
             score_title = "Correct"
+            score += 10
         } else {
             score_title = "Wrong"
         }
         showing_score = true
+        user_answer = number
+        round += 1
     }
     
-    func askQuestion() {
+    func continueGame() {
+        if round == max_round {
+            is_final_round = true
+            return
+        }
         countries.shuffle()
         correct_answer = Int.random(in: 0...2)
+    }
+    
+    func resetGame() {
+        countries.shuffle()
+        correct_answer = Int.random(in: 0...2)
+        score = 0
+        round = 0
     }
 }
 
