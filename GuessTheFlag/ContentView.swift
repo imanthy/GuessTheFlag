@@ -20,6 +20,7 @@ struct ContentView: View {
     @State private var score = 0
     @State private var round = 0
     @State private var is_final_round = false
+    @State private var selected_flag = -1
     let max_round = 10
     
     var body: some View {
@@ -54,6 +55,12 @@ struct ContentView: View {
                                 .renderingMode(.original)
                                 .clipShape(RoundedRectangle(cornerRadius: 20.0))
                                 .shadow(radius: 50)
+                                .rotation3DEffect(.degrees(selected_flag == number ? 360 : 0), axis: (x: 0, y: 1, z: 0))
+                                .opacity(selected_flag == -1 || selected_flag == number ? 1 : 0.25)
+                                .scaleEffect(selected_flag == -1 || selected_flag == number ? 1 : 0.75)
+                                .saturation(selected_flag == -1 || selected_flag == number ? 1 : 0)
+                                .blur(radius: selected_flag == -1 || selected_flag == number ? 0 : 3)
+                                .animation(.default, value: selected_flag)
                         }
                     }
                 } // flag VStack
@@ -112,6 +119,7 @@ struct ContentView: View {
         }
         showing_score = true
         user_answer = number
+        selected_flag = number
         round += 1
     }
     
@@ -122,6 +130,7 @@ struct ContentView: View {
         }
         countries.shuffle()
         correct_answer = Int.random(in: 0...2)
+        selected_flag = -1
     }
     
     func resetGame() {
